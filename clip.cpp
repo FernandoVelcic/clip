@@ -71,6 +71,7 @@ bool lock::get_image_spec(image_spec& spec) const {
 format empty_format() { return 0; }
 format text_format()  { return 1; }
 format image_format() { return 2; }
+format file_format()  { return 3; }
 
 bool has(format f) {
   lock l;
@@ -118,6 +119,28 @@ bool get_text(std::string& value) {
     value.clear();
     return true;
   }
+}
+
+bool get_file(std::string& value) {
+	lock l;
+	if (!l.locked())
+		return false;
+
+	format f = file_format();
+	if (!l.is_convertible(f))
+		return false;
+
+	size_t len = l.get_data_length(f);
+	if (len > 0) {
+		std::vector<char> buf(len);
+		l.get_data(f, &buf[0], len);
+		value = &buf[0];
+		return true;
+	}
+	else {
+		value.clear();
+		return true;
+	}
 }
 
 bool set_image(const image& img) {

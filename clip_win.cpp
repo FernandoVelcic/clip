@@ -15,6 +15,10 @@
 #define LCS_WINDOWS_COLOR_SPACE 'Win '
 #endif
 
+#ifndef CF_HDROP
+#define CF_HDROP            15
+#endif
+
 #ifndef CF_DIBV5
 #define CF_DIBV5            17
 #endif
@@ -92,6 +96,9 @@ bool lock::impl::is_convertible(format f) const {
       (IsClipboardFormatAvailable(CF_TEXT) ||
        IsClipboardFormatAvailable(CF_UNICODETEXT) ||
        IsClipboardFormatAvailable(CF_OEMTEXT));
+  }
+  else if (f == file_format()) {
+	return IsClipboardFormatAvailable(CF_HDROP);
   }
   else if (f == image_format()) {
     return (IsClipboardFormatAvailable(CF_DIB) ? true: false);
@@ -181,6 +188,17 @@ bool lock::impl::get_data(format f, char* buf, size_t len) const {
       }
     }
   }
+  else if (IsClipboardFormatAvailable(CF_HDROP)) {
+    HGLOBAL hglobal = GetClipboardData(CF_HDROP);
+	if (hglobal) {
+	  GlobalLock(hglobal);
+	  if (DragQueryFile((HDROP)hglobal, 0xFFFFFFFF, NULL, 0) == 1) {
+		DragQueryFile((HDROP)hglobal, 0, buf, MAX_PATH);
+	    result = true;
+	  }
+	  GlobalUnlock(hglobal);
+	}
+  }
   else {
     if (IsClipboardFormatAvailable(f)) {
       HGLOBAL hglobal = GetClipboardData(f);
@@ -228,6 +246,9 @@ size_t lock::impl::get_data_length(format f) const {
         }
       }
     }
+  }
+  else if (f == file_format()) {
+	len = MAX_PATH;
   }
   // TODO check if it's a registered custom format
   else if (f != empty_format()) {

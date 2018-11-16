@@ -72,6 +72,9 @@ namespace clip {
   // When the clipboard has an image.
   format image_format();
 
+  // When the clipboard has a file.
+  format file_format();
+
   // Returns true if the clipboard has content of the given type.
   bool has(format f);
 
@@ -100,6 +103,14 @@ namespace clip {
   // functions returns false in case of error.
   bool set_text(const std::string& value);
   bool get_text(std::string& value);
+
+  // ======================================================================
+  // File
+  // ======================================================================
+
+  // High-level API to put/get UTF8 text in/from the clipboard. These
+  // functions returns false in case of error.
+  bool get_file(std::string& value);
 
   // ======================================================================
   // Image
