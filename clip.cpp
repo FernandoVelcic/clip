@@ -121,26 +121,29 @@ bool get_text(std::string& value) {
   }
 }
 
-bool get_file(std::string& value) {
-	lock l;
-	if (!l.locked())
-		return false;
+bool get_files(std::vector<std::string>& files) {
+  lock l;
+  if (!l.locked())
+    return false;
 
-	format f = file_format();
-	if (!l.is_convertible(f))
-		return false;
+  format f = file_format();
+  if (!l.is_convertible(f))
+    return false;
 
-	size_t len = l.get_data_length(f);
-	if (len > 0) {
-		std::vector<char> buf(len);
-		l.get_data(f, &buf[0], len);
-		value = &buf[0];
-		return true;
-	}
-	else {
-		value.clear();
-		return true;
-	}
+  size_t len = l.get_data_length(f);
+  if (len > 0) {
+    std::vector<char> buf(len);
+    l.get_data(f, &buf[0], len);
+
+    for (char *p = strtok(&buf[0], "\n"); p != NULL; p = strtok(NULL, "\n")) {
+      files.push_back(p);
+    }
+    
+    return true;
+  } else {
+    files.clear();
+    return true;
+  }
 }
 
 bool set_image(const image& img) {

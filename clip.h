@@ -11,6 +11,8 @@
 #include <cassert>
 #include <memory>
 #include <string>
+#include <string.h>
+#include <vector>
 
 namespace clip {
 
@@ -108,9 +110,9 @@ namespace clip {
   // File
   // ======================================================================
 
-  // High-level API to put/get UTF8 text in/from the clipboard. These
+  // High-level API to get files from the clipboard. These
   // functions returns false in case of error.
-  bool get_file(std::string& value);
+  bool get_files(std::vector<std::string>& files);
 
   // ======================================================================
   // Image

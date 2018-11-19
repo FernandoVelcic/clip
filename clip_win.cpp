@@ -190,14 +190,16 @@ bool lock::impl::get_data(format f, char* buf, size_t len) const {
   }
   else if (IsClipboardFormatAvailable(CF_HDROP)) {
     HGLOBAL hglobal = GetClipboardData(CF_HDROP);
-	if (hglobal) {
-	  GlobalLock(hglobal);
-	  if (DragQueryFile((HDROP)hglobal, 0xFFFFFFFF, NULL, 0) == 1) {
-		DragQueryFile((HDROP)hglobal, 0, buf, MAX_PATH);
-	    result = true;
-	  }
-	  GlobalUnlock(hglobal);
-	}
+    if (hglobal) {
+      GlobalLock(hglobal);
+      size_t count = DragQueryFile((HDROP)hglobal, 0xFFFFFFFF, NULL, 0);
+      for (size_t i = 0; i < count; ++i) {
+        DragQueryFile((HDROP)hglobal, i, buf+strlen(buf), MAX_PATH);
+        buf[strlen(buf)] = '\n';
+      }
+      result = true;
+      GlobalUnlock(hglobal);
+    }
   }
   else {
     if (IsClipboardFormatAvailable(f)) {
@@ -248,7 +250,11 @@ size_t lock::impl::get_data_length(format f) const {
     }
   }
   else if (f == file_format()) {
-	len = MAX_PATH;
+    HGLOBAL hglobal = GetClipboardData(CF_HDROP);
+    GlobalLock(hglobal);
+    size_t count = DragQueryFile((HDROP)hglobal, 0xFFFFFFFF, NULL, 0);
+    len = count * MAX_PATH;
+    GlobalUnlock(hglobal);
   }
   // TODO check if it's a registered custom format
   else if (f != empty_format()) {
